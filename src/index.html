@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
+  <title>Image Shrinker!</title>
+  <link rel="stylesheet" href="css/all.min.css">
+  <link rel="stylesheet" href="css/materialize.min.css">
+  <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+  <div class="container center-align">
+    <h3><i class="fas fa-images"></i> ImageShrinker</h3>
+    <p>Choose an image to resize</p>
+    <form id="image-form">
+      <div class="file-field input-field">
+        <div class="btn">
+          <span>Browse</span>
+          <input type="file" id="img" required accept="image/*" />
+        </div>
+
+        <div class="file-path-wrapper">
+          <input class="file-path validate" type="text" placeholder="Upload file" />
+        </div>
+      </div>
+
+      <p>
+        <strong>Quality:</strong>
+        <em>The lower the quality, the smaller the filesize</em>
+      </p>
+      <p class="range-field">
+        <input type="range" id="slider" min="0" max="100" />
+      </p>
+
+      <input type="submit" class="cyan btn" value="Resize" />
+    </form>
+
+    <div class="card output">
+      <div class="card-content">
+        Output Path: <a href="javascript:void(0);" onclick="openPath()" id="output-path"></a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/materialize.min.js"></script>
+  <script src="js/jquery-3.2.1.min.js" onload="window.$ = window.jQuery = module.exports;"></script>
+  <script>
+    const path = require('path');
+    const os = require('os');
+    const {ipcRenderer,shell} = require('electron');
+    //console.log(path);
+    //setting path to ui
+    const pathUrl = path.join(os.homedir(), 'Pictures/imageshrink');
+    $("#output-path").text(pathUrl);
+
+    $("#image-form").submit(() => {
+      event.preventDefault();
+      const imgPath = $("#img")[0].files[0].path;
+      const quality = $("#slider").val();
+
+      //console.log(imgPath,quality);
+      ipcRenderer.send('img:minimize', {
+        'imgPath': imgPath,
+        'quality': quality
+      });
+    });
+
+    function openPath(){
+      shell.openPath(pathUrl);
+    }
+
+    ipcRenderer.on('img:done',()=> {
+      M.toast({
+        html: `Image resized!`,
+      });
+    });
+  </script>
+</body>
+
+</html>
